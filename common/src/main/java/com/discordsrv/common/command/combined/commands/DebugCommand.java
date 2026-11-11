@@ -147,7 +147,7 @@ public class DebugCommand {
     public DebugCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "DEBUG_COMMAND");
-        this.pasteService = new AESEncryptedPasteService(new PastesDevPasteService(discordSRV, "https://api.pastes.dev"), 128);
+        this.pasteService = new AESEncryptedPasteService(new PastesDevPasteService(discordSRV, "https://api.pastes.dev") /* TODO: final store tbd */, 128);
 
         this.base = new BaseCommand(this);
         this.start = new StartCommand(this);
