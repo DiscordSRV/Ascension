@@ -197,7 +197,7 @@ dependencyResolutionManagement {
             library('adventure-serializer-gson-v4', 'net.kyori', 'adventure-text-serializer-gson').versionRef('adventure-v4')
 
             // MCDiscordReserializer & EnhancedLegacyText
-            library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('5.0.0')
+            library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('5.0.1-SNAPSHOT')
             library('enhancedlegacytext', 'dev.vankka', 'enhancedlegacytext').version('3.0.0')
 
             // JUnit
