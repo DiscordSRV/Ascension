@@ -34,10 +34,12 @@ public class ModdedCommandExecutor implements CommandExecutor {
 
     @Override
     public void runCommand(String command) {
-        //? if minecraft: <1.19 {
-        /*discordSRV.getServer().getCommandManager().execute(source, command);
-        *///?} else {
-        discordSRV.getServer().getCommands().performPrefixedCommand(source, command);
-         //?}
+        discordSRV.getServer().execute(() -> {
+            //? if minecraft: <1.19 {
+            /*discordSRV.getServer().getCommandManager().execute(source, command);
+            *///?} else {
+            discordSRV.getServer().getCommands().performPrefixedCommand(source, command);
+            //?}
+        });
     }
 }

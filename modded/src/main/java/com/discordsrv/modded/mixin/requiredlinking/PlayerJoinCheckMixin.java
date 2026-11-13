@@ -41,6 +41,6 @@ public class PlayerJoinCheckMixin {
                 .withMethod("canJoin", entry)
                 .execute();
 
-        cir.setReturnValue(kickReason.orElse(null));
+        kickReason.ifPresent(cir::setReturnValue);
     }
 }
