@@ -58,6 +58,8 @@ import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import dev.faststats.SimpleContext;
+import dev.faststats.Token;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -85,6 +87,9 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
     DiscordSRVDependencyManager dependencyManager();
     ICommandHandler commandHandler();
     @NotNull AbstractPlayerProvider<? extends IPlayer, ? extends DiscordSRV> playerProvider();
+
+    // Metrics
+    SimpleContext.Factory<?, ?> metricsFactory(@Token String token);
 
     // DiscordSRVApi
     @Override

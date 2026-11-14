@@ -41,6 +41,8 @@ import com.discordsrv.velocity.player.VelocitySkinProvider;
 import com.discordsrv.velocity.plugin.VelocityPluginManager;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
+import dev.faststats.Token;
+import dev.faststats.velocity.VelocityContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
@@ -111,6 +113,11 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
 
     public ProxyServer proxy() {
         return bootstrap.proxyServer();
+    }
+
+    @Override
+    public VelocityContext.Factory metricsFactory(@Token String token) {
+        return bootstrap.velocityMetricsFactory().token(token);
     }
 
     @Override

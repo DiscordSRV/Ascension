@@ -30,6 +30,8 @@ import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.debug.data.OnlineMode;
+import dev.faststats.Token;
+import dev.faststats.bukkit.BukkitContext;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -133,6 +135,11 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
 
     public Server server() {
         return bootstrap().getPlugin().getServer();
+    }
+
+    @Override
+    public BukkitContext.Factory metricsFactory(@Token String token) {
+        return new BukkitContext.Factory(plugin(), token);
     }
 
     @Override

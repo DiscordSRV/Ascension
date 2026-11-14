@@ -56,7 +56,7 @@ import java.security.CodeSource;
 import java.util.UUID;
 import java.util.jar.JarFile;
 
-public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
+public abstract class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
     private final StandardScheduler scheduler;
     private final ModdedConsole console;
     private final ModdedPlayerProvider playerProvider;

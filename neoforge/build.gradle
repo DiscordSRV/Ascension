@@ -115,6 +115,9 @@ dependencies {
     // Mixin Extras
     jarJar(implementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
+    // Metrics
+    jarJar(implementation("dev.faststats.metrics:neoforge:${libs.versions.faststats.get()}+mc${minecraftVersion}"))
+
     // DependencyDownload
     shadow(libs.dependencydownload.jarinjar.loader)
     shadow(libs.dependencydownload.jarinjar.bootstrap)

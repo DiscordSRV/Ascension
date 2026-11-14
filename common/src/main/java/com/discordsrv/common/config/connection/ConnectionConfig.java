@@ -55,6 +55,8 @@ public class ConnectionConfig implements Config {
 
     public UpdateConfig update = new UpdateConfig();
 
+    public MetricsConfig metrics = new MetricsConfig();
+
     @Comment("Configuration options for the http proxy to use for all HTTP and WS connections. SOCKS is not supported")
     public HttpProxyConfig httpProxy = new HttpProxyConfig();
 }

@@ -1,3 +1,5 @@
+import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+
 [
         'net.kyori',
 ].each {
@@ -26,6 +28,16 @@ allprojects {
     }
 }
 
+var generateResourceForAdventure = tasks.register('generateResourceForAdventure', GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.runtimeDownloadApi
+    configuration = conf
+    file = 'dependencies/adventureApi.txt'
+}
+
+processResources {
+    dependsOn(generateResourceForAdventure)
+}
+
 shadowJar {
     archiveFileName = 'bungee.jarinjar'
 }
@@ -39,6 +51,9 @@ dependencies {
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.bungee.bootstrap)
+
+    // FastStats Metrics
+    implementation(libs.faststats.bungeecord)
 
     // Adventure
     runtimeDownloadApi(libs.adventure.api)
