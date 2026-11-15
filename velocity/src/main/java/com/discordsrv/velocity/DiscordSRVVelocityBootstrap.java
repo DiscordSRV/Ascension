@@ -33,6 +33,7 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.util.ProxyVersion;
+import dev.faststats.velocity.VelocityContext;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.mcdependencydownload.velocity.classpath.VelocityClasspathAppender;
 
@@ -56,6 +57,7 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
     private final ProxyServer proxyServer;
     private final PluginContainer pluginContainer;
     private final Path dataDirectory;
+    private final VelocityContext.Factory metricsFactory;
     private VelocityDiscordSRV discordSRV;
 
     @Inject
@@ -71,6 +73,7 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
         this.proxyServer = proxyServer;
         this.pluginContainer = pluginContainer;
         this.dataDirectory = dataDirectory;
+        this.metricsFactory = new VelocityContext.Factory(pluginContainer, proxyServer, (org.slf4j.Logger) logger, dataDirectory);
     }
 
     @Subscribe
@@ -125,5 +128,9 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
 
     public PluginContainer pluginContainer() {
         return pluginContainer;
+    }
+
+    public VelocityContext.Factory velocityMetricsFactory() {
+        return metricsFactory;
     }
 }

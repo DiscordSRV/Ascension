@@ -57,6 +57,9 @@ dependencies {
     api project(':common')
     compileOnlyApi project(':common')
 
+    // FastStats Metrics
+    implementation(libs.faststats.bukkit)
+
     // Integrations
     compileOnly(libs.vaultapi)
     compileOnly(libs.placeholderapi.bukkit)

@@ -99,6 +99,7 @@ import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.helper.VanishStatusTrackingModule;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
+import com.discordsrv.common.metrics.FastStatsMetrics;
 import com.discordsrv.common.util.ApiInstanceUtil;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.common.util.GitIgnoreUtil;
@@ -106,6 +107,7 @@ import com.discordsrv.common.util.UUIDUtil;
 import com.discordsrv.common.util.function.CheckedFunction;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.faststats.FastStatsContext;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDAInfo;
 import okhttp3.*;
@@ -190,6 +192,9 @@ public abstract class AbstractDiscordSRV<
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    // Metrics
+    private FastStatsContext metrics;
 
     public AbstractDiscordSRV(B bootstrap) {
         ApiInstanceUtil.setInstance(this);
@@ -800,6 +805,11 @@ public abstract class AbstractDiscordSRV<
         // Initial load
         reload(ReloadFlag.LOAD, true);
 
+        if (connectionConfig().metrics.enabled) {
+            FastStatsMetrics fastStatsMetrics = new FastStatsMetrics(this);
+            this.metrics = fastStatsMetrics.create(metricsFactory(FastStatsMetrics.TOKEN));
+        }
+
         if (serverType() == ServerType.PROXY) {
             runServerStarted().get();
         }
@@ -810,6 +820,9 @@ public abstract class AbstractDiscordSRV<
         serverStarted = true;
         startTime = ZonedDateTime.now();
         eventBus().publish(new ServerStartedEvent());
+        if (metrics != null) {
+            metrics.ready();
+        }
         logger().debug("Server started");
     }
 
@@ -1043,6 +1056,11 @@ public abstract class AbstractDiscordSRV<
 
         eventBus().publish(new DiscordSRVShuttingDownEvent());
         eventBus().shutdown();
+
+        // Shutdown metrics
+        if (metrics != null) {
+            metrics.shutdown();
+        }
 
         // Shutdown OkHttp
         if (httpClient != null) {

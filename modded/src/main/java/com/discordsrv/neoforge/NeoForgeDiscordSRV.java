@@ -19,10 +19,16 @@
 package com.discordsrv.neoforge;
 
 import com.discordsrv.modded.ModdedDiscordSRV;
+import dev.faststats.neoforge.NeoForgeContext;
 
 public class NeoForgeDiscordSRV extends ModdedDiscordSRV {
 
     public NeoForgeDiscordSRV(DiscordSRVNeoForgeBootstrap bootstrap) {
         super(bootstrap);
+    }
+
+    @Override
+    public NeoForgeContext.Factory metricsFactory(String token) {
+        return new NeoForgeContext.Factory("discordsrv", token);
     }
 }

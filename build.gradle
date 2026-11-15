@@ -105,6 +105,13 @@ subprojects {
             }
         }
 
+        maven {
+            url "https://repo.faststats.dev/releases"
+            content {
+                includeGroup "dev.faststats.metrics"
+            }
+        }
+
         // Get dependencies from central last, everything else should be filtered
         mavenCentral()
     }

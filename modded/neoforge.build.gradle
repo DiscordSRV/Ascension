@@ -121,6 +121,9 @@ dependencies {
 
     runtimeDownload(libs.adventure.api)
 
+    // Metrics
+    compileOnly("dev.faststats.metrics:neoforge:${libs.versions.faststats.get()}+mc${minecraftVersion}")
+
     // DependencyDownload
     compileOnly(libs.dependencydownload.jarinjar.loader)
     compileOnly(libs.dependencydownload.jarinjar.bootstrap)

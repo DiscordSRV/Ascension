@@ -55,6 +55,9 @@ dependencies {
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.velocity)
+
+    // FastStats Metrics
+    implementation(libs.faststats.velocity)
 }
 
 tasks {
