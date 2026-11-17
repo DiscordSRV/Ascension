@@ -39,6 +39,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class TranslationLoader {
 
@@ -56,10 +58,7 @@ public class TranslationLoader {
             TranslationStore<MessageFormat> translationStore = TranslationStore.messageFormat(Key.key("discordsrv", "user-defined"));
             translationStore.defaultLocale(ComponentFactory.TRANSLATION_LOCALE);
 
-            Path languages = discordSRV.dataDirectory().resolve("game_languages");
-            if (Files.exists(languages)) {
-                loadFromFiles(languages, translationStore);
-            }
+            loadTranslations(translationStore);
 
             // Remove our previous store
             if (currentTranslationStore != null) {
@@ -73,18 +72,30 @@ public class TranslationLoader {
         }
     }
 
+    protected void loadTranslations(TranslationStore<MessageFormat> translationStore) throws IOException {
+        Path languages = discordSRV.dataDirectory().resolve("game_languages");
+        if (Files.exists(languages)) {
+            loadFromFiles(languages, translationStore);
+        }
+    }
+
     protected void loadFromFiles(Path folder, TranslationStore<MessageFormat> translationStore) throws IOException {
         try (Stream<Path> paths = Files.list(folder)) {
             paths.forEach(path -> {
                 String fileName = path.getFileName().toString();
                 int lastDot = fileName.lastIndexOf(".");
                 String extension = lastDot == -1 ? null : fileName.substring(lastDot + 1);
-                if (extension == null || !(extension.equals("json") || extension.equals("lang"))) {
-                    discordSRV.logger().warning("Unexpected file in game_languages: " + fileName);
-                    return;
-                }
 
                 try {
+                    if (extension != null && (extension.equalsIgnoreCase("jar") || extension.equalsIgnoreCase("zip"))) {
+                        loadFromArchive(path, translationStore);
+                        return;
+                    }
+                    if (extension == null || (!extension.equalsIgnoreCase("json") && !extension.equalsIgnoreCase("lang"))) {
+                        discordSRV.logger().debug("Unexpected file in game_languages: " + fileName);
+                        return;
+                    }
+
                     // Grab locale from file name to pass to MessageFormat
                     String language = fileName.substring(0, lastDot);
                     Locale locale = ComponentUtil.extractLocale(language);
@@ -98,7 +109,7 @@ public class TranslationLoader {
                         translations = getFromProperties(url);
                     }
                     if (translations != null && !translations.isEmpty()) {
-                        translations.forEach((key, value) -> translationStore.register(key, locale, messageFormat(value, locale)));
+                        registerTranslations(translations, locale, fileName, translationStore);
                         logger.debug("Loaded " + translations.size() + " translations from " + fileName + " (in " + locale + ")");
                     }
                 } catch (Throwable t) {
@@ -106,6 +117,58 @@ public class TranslationLoader {
                 }
             });
         }
+    }
+
+    protected void loadFromArchive(Path path, TranslationStore<MessageFormat> translationStore) throws IOException {
+        try (JarFile jarFile = new JarFile(path.toFile())) {
+            jarFile.stream()
+                .filter(entry -> !entry.isDirectory())
+                .filter(entry -> entry.getName().startsWith("assets/"))
+                .filter(entry -> entry.getName().contains("/lang/"))
+                .filter(entry -> entry.getName().toLowerCase(Locale.ROOT).endsWith(".json"))
+                .forEach(entry -> loadJarTranslation(jarFile, entry, translationStore));
+        }
+    }
+
+    private void loadJarTranslation(JarFile jarFile, JarEntry entry, TranslationStore<MessageFormat> translationStore) {
+        Path archivePath = Path.of(jarFile.getName());
+        String entryName = entry.getName();
+        int langPath = entryName.indexOf("/lang/");
+        String fileName = entryName.substring(entryName.lastIndexOf('/') + 1);
+        int lastDot = fileName.lastIndexOf('.');
+
+        // If the entry is not in the lang folder or doesn't have a file extension, skip it
+        if (langPath < "assets/".length() || lastDot <= 0) {
+            return;
+        }
+
+        try {
+            String language = fileName.substring(0, lastDot);
+            Locale locale = ComponentUtil.extractLocale(language);
+            Map<String, String> translations;
+            try (InputStream inputStream = jarFile.getInputStream(entry)) {
+                translations = getFromJson(inputStream);
+            }
+            if (translations != null && !translations.isEmpty()) {
+                registerTranslations(translations, locale, entryName, translationStore);
+                logger.debug("Loaded " + translations.size() + " translations from " + entryName + " in " + archivePath.getFileName() + " (in " + locale + ")");
+            }
+        } catch (Throwable t) {
+            logger.warning("Failed to read language file " + entryName + " from " + archivePath.getFileName(), t);
+        }
+    }
+
+    private void registerTranslations(Map<String, String> translations, Locale locale, String source, TranslationStore<MessageFormat> translationStore) {
+        translations.forEach((key, value) -> {
+            if (translationStore.contains(key, locale)) {
+                return;
+            }
+            try {
+                translationStore.register(key, locale, messageFormat(value, locale));
+            } catch (IllegalArgumentException exception) {
+                logger.warning("Failed to register translation " + key + " from " + source + " (in " + locale + ")", exception);
+            }
+        });
     }
 
     protected Map<String, String> getFromProperties(URL url) throws IOException {
@@ -121,9 +184,15 @@ public class TranslationLoader {
     }
 
     protected Map<String, String> getFromJson(URL url) throws IOException {
+        try (InputStream inputStream = url.openStream()) {
+            return getFromJson(inputStream);
+        }
+    }
+
+    protected Map<String, String> getFromJson(InputStream inputStream) throws IOException {
         Map<String, String> translations = new HashMap<>();
 
-        JsonNode node = discordSRV.json().readTree(url);
+        JsonNode node = discordSRV.json().readTree(inputStream);
         node.fields().forEachRemaining(entry -> translations.put(entry.getKey(), entry.getValue().textValue()));
 
         return translations;
@@ -162,6 +231,10 @@ public class TranslationLoader {
         // Unescape %
         value = value.replace("%%", "%");
 
+        // if the value contains { xor }, for example a minecraft client keypad { or }. Which means they are unmatched and Adventure will freak out.
+        if (value.contains("{") ^ value.contains("}")) {
+            return new MessageFormat(value.replace("{", "").replace("}", ""), locale);
+        }
         return new MessageFormat(value, locale);
     }
 }
