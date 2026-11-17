@@ -79,9 +79,6 @@ public class MySQLStorage extends HikariStorage {
                             + "constraint LINKING_CODES_UQ unique (CODE)"
                             + ");");
         }
-        try (Statement statement = connection.createStatement()) {
-            statement.execute("alter table " + tablePrefix + LINKING_CODES_TABLE_NAME + " add column if not exists PLAYERUSERNAME varchar(32);");
-        }
         addColumnIfMissing(connection, tablePrefix + LINKING_CODES_TABLE_NAME, "PLAYERUSERNAME", "varchar(32)");
         addColumnIfMissing(connection, tablePrefix + LINKED_ACCOUNTS_TABLE_NAME, "CREATED", "datetime");
         addColumnIfMissing(connection, tablePrefix + LINKED_ACCOUNTS_TABLE_NAME, "LASTSEEN", "datetime");
