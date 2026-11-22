@@ -33,6 +33,7 @@ import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.modded.command.game.ModdedGameCommandExecutionHelper;
 import com.discordsrv.modded.command.game.handler.ModdedCommandHandler;
+import com.discordsrv.modded.component.ModdedTranslationLoader;
 import com.discordsrv.modded.component.ModdedTranslator;
 import com.discordsrv.modded.config.main.ModdedConfig;
 import com.discordsrv.modded.console.ModdedConsole;
@@ -79,6 +80,7 @@ public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstr
         this.commandHandler = new ModdedCommandHandler(this);
         this.executionHelper = new ModdedGameCommandExecutionHelper(this);
         this.componentFactory = new ModdedComponentFactory(this);
+        this.translationLoader = new ModdedTranslationLoader(this);
         this.console = new ModdedConsole(this);
 
         // Config
