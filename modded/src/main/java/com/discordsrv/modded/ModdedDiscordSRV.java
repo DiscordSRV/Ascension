@@ -30,6 +30,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.debug.data.OnlineMode;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
+import com.discordsrv.modded.scheduler.ModdedScheduler;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.modded.command.game.ModdedGameCommandExecutionHelper;
 import com.discordsrv.modded.command.game.handler.ModdedCommandHandler;
@@ -57,7 +58,7 @@ import java.util.UUID;
 import java.util.jar.JarFile;
 
 public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
-    private final StandardScheduler scheduler;
+    private final ModdedScheduler scheduler;
     private final ModdedConsole console;
     private final ModdedPlayerProvider playerProvider;
     private final ModManager modManager;
@@ -73,7 +74,7 @@ public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstr
     public ModdedDiscordSRV(DiscordSRVModdedBootstrap bootstrap) {
         super(bootstrap);
 
-        this.scheduler = new StandardScheduler(this);
+        this.scheduler = new ModdedScheduler(this);
         this.playerProvider = new ModdedPlayerProvider(this);
         this.modManager = new ModManager();
         this.commandHandler = new ModdedCommandHandler(this);
