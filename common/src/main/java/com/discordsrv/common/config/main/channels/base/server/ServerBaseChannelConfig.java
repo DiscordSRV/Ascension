@@ -20,9 +20,7 @@ package com.discordsrv.common.config.main.channels.base.server;
 
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.config.main.channels.server.AdvancementMessageConfig;
-import com.discordsrv.common.config.main.channels.server.DeathMessageConfig;
-import com.discordsrv.common.config.main.channels.server.ServerJoinMessageConfig;
+import com.discordsrv.common.config.main.channels.server.*;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -38,6 +36,10 @@ public class ServerBaseChannelConfig extends BaseChannelConfig {
 
     @Order(3)
     public DeathMessageConfig deathMessages = new DeathMessageConfig();
+
+    @Order(4)
+    @Comment("Server watchdog message configuration")
+    public ServerWatchdogConfig watchdog = new ServerWatchdogConfig();
 
     @Override
     public ServerJoinMessageConfig joinMessages() {
