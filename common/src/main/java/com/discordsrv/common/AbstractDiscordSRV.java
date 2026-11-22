@@ -78,6 +78,7 @@ import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.*;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.channel.ChannelLockingModule;
+import com.discordsrv.common.feature.messageforwarding.game.ServerWatchdogModule;
 import com.discordsrv.common.feature.channel.ChannelUpdaterModule;
 import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
@@ -772,6 +773,7 @@ public abstract class AbstractDiscordSRV<
         if (serverType() == ServerType.SERVER) {
             registerModule(AdvancementMessageModule::new);
             registerModule(DeathMessageModule::new);
+            registerModule(ServerWatchdogModule::new);
         }
 
         // Integrations
