@@ -38,8 +38,8 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.core.debug.data.OnlineMode;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
-import dev.faststats.SimpleContext;
-import dev.faststats.bungee.BungeeContext;
+import dev.faststats.FastStatsContext;
+import dev.faststats.bungee.FastStatsBungee;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -97,8 +97,8 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
     }
 
     @Override
-    public BungeeContext.Factory metricsFactory(String token) {
-        return new BungeeContext.Factory(plugin(), token);
+    public FastStatsContext.Builder metricsFactory(String token) {
+        return FastStatsBungee.builder(plugin()).token(token);
     }
 
     @Override

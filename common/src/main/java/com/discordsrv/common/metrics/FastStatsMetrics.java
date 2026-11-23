@@ -48,7 +48,7 @@ public class FastStatsMetrics {
         this.discordSRV = discordSRV;
     }
 
-    public FastStatsContext create(final SimpleContext.Factory<? extends SimpleContext, ? extends SimpleContext.Factory<?, ?>> platformFactory) {
+    public FastStatsContext create(final FastStatsContext.Builder platformFactory) {
         return platformFactory
                 .errorTrackerService(ERROR_TRACKER)
                 .metrics(factory -> {
@@ -115,7 +115,7 @@ public class FastStatsMetrics {
 
                     return factory.create();
                 })
-                .create();
+                .build();
     }
 
     private static int destinationCount(BaseChannelConfig config) {

@@ -50,6 +50,7 @@ import com.discordsrv.common.core.storage.impl.MemoryStorage;
 import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.permission.game.Permission;
+import dev.faststats.FastStatsContext;
 import dev.faststats.SimpleContext;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.text.Component;
@@ -216,8 +217,8 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     }
 
     @Override
-    public SimpleContext.Factory<?, ?> metricsFactory(String token) {
-        return null;
+    public FastStatsContext.Builder metricsFactory(String token) {
+        return new SimpleContext.Builder(token);
     }
 
     @Override

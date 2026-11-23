@@ -19,7 +19,8 @@
 package com.discordsrv.fabric;
 
 import com.discordsrv.modded.ModdedDiscordSRV;
-import dev.faststats.fabric.FabricContext;
+import dev.faststats.FastStatsContext;
+import dev.faststats.fabric.FastStatsFabric;
 
 public class FabricDiscordSRV extends ModdedDiscordSRV {
 
@@ -36,7 +37,7 @@ public class FabricDiscordSRV extends ModdedDiscordSRV {
     }
 
     @Override
-    public FabricContext.Factory metricsFactory(String token) {
-        return new FabricContext.Factory("discordsrv", token);
+    public FastStatsContext.Builder metricsFactory(String token) {
+        return FastStatsFabric.builder("discordsrv").token(token);
     }
 }
