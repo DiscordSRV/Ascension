@@ -29,4 +29,7 @@ public class MetricsConfig {
     @Comment("Whether to send metrics to FastStats")
     public boolean enabled = true;
 
+    @Setting(value = "error_tracking_enabled")
+    @Comment("Whether to send error tracking data to FastStats")
+    public boolean errorTrackingEnabled = true;
 }

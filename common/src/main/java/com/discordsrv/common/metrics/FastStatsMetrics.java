@@ -50,7 +50,6 @@ public class FastStatsMetrics {
 
     public FastStatsContext create(final FastStatsContext.Builder platformFactory) {
         return platformFactory
-                .errorTrackerService(ERROR_TRACKER)
                 .metrics(factory -> {
                     factory.addMetric(Metric.string("version", () -> discordSRV.versionInfo().version()));
                     factory.addMetric(Metric.string("git_revision", () -> discordSRV.versionInfo().gitRevision()));

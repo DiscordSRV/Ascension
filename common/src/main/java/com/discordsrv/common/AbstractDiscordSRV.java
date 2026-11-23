@@ -807,7 +807,10 @@ public abstract class AbstractDiscordSRV<
 
         if (connectionConfig().metrics.enabled) {
             FastStatsMetrics fastStatsMetrics = new FastStatsMetrics(this);
-            this.metrics = fastStatsMetrics.create(metricsFactory(FastStatsMetrics.TOKEN));
+            FastStatsContext.Builder builder = metricsFactory(FastStatsMetrics.TOKEN);
+
+            if (connectionConfig().metrics.errorTrackingEnabled) builder.errorTrackerService(FastStatsMetrics.ERROR_TRACKER);
+            this.metrics = fastStatsMetrics.create(builder);
         }
 
         if (serverType() == ServerType.PROXY) {
