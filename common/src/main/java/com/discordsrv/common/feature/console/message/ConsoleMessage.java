@@ -84,7 +84,11 @@ public class ConsoleMessage {
     }
 
     public String asAnsi() {
-        return discordSRV.componentFactory().ansiSerializer().serialize(component()) + (ANSI_ESCAPE + "[0m");
+        return asAnsi(null);
+    }
+
+    public String asAnsi(TextColor defaultColor) {
+        return discordSRV.componentFactory().ansiSerializer().serialize(component().color(defaultColor)) + (ANSI_ESCAPE + "[0m");
     }
 
     public String asPlain() {

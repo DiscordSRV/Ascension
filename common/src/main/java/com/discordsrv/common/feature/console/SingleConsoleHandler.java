@@ -47,6 +47,8 @@ import com.discordsrv.common.logging.LogLevel;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.dv8tion.jda.api.entities.Message;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -532,6 +534,23 @@ public class SingleConsoleHandler {
         }
         if (!throwable.isEmpty()) {
             throwable += "\n";
+        }
+
+        if (outputMode == DiscordOutputMode.ANSI) {
+            TextColor color = null;
+            if (entry.level() == LogLevel.StandardLogLevel.ERROR) {
+                color = NamedTextColor.RED;
+            } else if (entry.level() == LogLevel.StandardLogLevel.WARNING) {
+                color = NamedTextColor.YELLOW;
+            }
+            if (color != null) {
+                if (!message.isEmpty()) {
+                    message = new ConsoleMessage(discordSRV, message).asAnsi(color);
+                }
+                if (!throwable.isEmpty()) {
+                    throwable = new ConsoleMessage(discordSRV, throwable).asAnsi(color);
+                }
+            }
         }
 
         List<String> formatted = new ArrayList<>();
