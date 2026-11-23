@@ -19,6 +19,8 @@
 package com.discordsrv.fabric;
 
 import com.discordsrv.modded.ModdedDiscordSRV;
+import dev.faststats.FastStatsContext;
+import dev.faststats.fabric.FastStatsFabric;
 
 public class FabricDiscordSRV extends ModdedDiscordSRV {
 
@@ -32,5 +34,10 @@ public class FabricDiscordSRV extends ModdedDiscordSRV {
 
         // Fabric Integrations
         registerIntegration("com.discordsrv.fabric.integration.TextPlaceholderIntegration");
+    }
+
+    @Override
+    public FastStatsContext.Builder metricsFactory(String token) {
+        return FastStatsFabric.builder("discordsrv").token(token);
     }
 }

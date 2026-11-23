@@ -209,6 +209,9 @@ dependencies {
         exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-bom'
     })
 
+    // Metrics
+    include(modImplementation("dev.faststats.metrics:fabric:${libs.versions.faststats.get()}+mc${minecraftVersion}"))
+
     // Integrations
     modCompileOnly("eu.pb4:placeholder-api:${sc.properties.getOrNull("deps.text_placeholder_api")}")
 

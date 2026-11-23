@@ -48,6 +48,9 @@ dependencies {
     // Adventure
     runtimeDownload(libs.adventure.api)
 
+    // FastStats Metrics
+    implementation(libs.faststats.bukkit)
+
     // Platform
     if (verifyLatestBukkit) {
         compileOnly(libs.paperapi.latest) {

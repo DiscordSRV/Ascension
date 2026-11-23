@@ -50,6 +50,8 @@ import com.discordsrv.common.core.storage.impl.MemoryStorage;
 import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.permission.game.Permission;
+import dev.faststats.FastStatsContext;
+import dev.faststats.SimpleContext;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -212,6 +214,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
                 playerProviderSubscribed = false;
             }
         };
+    }
+
+    @Override
+    public FastStatsContext.Builder metricsFactory(String token) {
+        return new SimpleContext.Builder(token);
     }
 
     @Override
